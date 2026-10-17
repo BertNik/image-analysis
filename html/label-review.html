@@ -1,0 +1,1188 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Alcohol Label Verification</title>
+    <style>
+        :root {
+            --navy: #12314f;
+            --blue: #1866b3;
+            --bg: #f4f6f8;
+            --card: #fff;
+            --border: #d8dee6;
+            --text: #182230;
+            --muted: #586777;
+            --green: #176b3a;
+            --green-bg: #eaf6ee;
+            --amber: #845400;
+            --amber-bg: #fff4d6;
+            --red: #9c2e2e;
+            --red-bg: #fdecec;
+            --gray: #edf2f7
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif
+        }
+
+        button,
+        input {
+            font: inherit
+        }
+
+        button,
+        .filebtn {
+            border: 0;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-weight: 650;
+            cursor: pointer
+        }
+
+        button:disabled {
+            opacity: .55;
+            cursor: not-allowed
+        }
+
+        .primary {
+            background: var(--blue);
+            color: #fff
+        }
+
+        .secondary {
+            background: var(--gray);
+            color: #223548
+        }
+
+        .filebtn input {
+            display: none
+        }
+
+        header {
+            background: var(--navy);
+            color: #fff;
+            padding: 18px 28px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 21px
+        }
+
+        .sub {
+            opacity: .82;
+            font-size: 13px
+        }
+
+        .app-shell {
+            max-width: 1600px;
+            margin: auto;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: 18px
+        }
+
+        .application-sidebar,
+        .panel,
+        .summary,
+        .upload,
+        .application-heading,
+        details {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px
+        }
+
+        .application-sidebar {
+            align-self: start;
+            position: sticky;
+            top: 18px;
+            overflow: hidden
+        }
+
+        .sidebar-header {
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 16px
+        }
+
+        .application-list {
+            padding: 8px
+        }
+
+        .application-item-wrap {
+            position: relative;
+            margin-bottom: 5px;
+            border: 1px solid transparent;
+            border-radius: 7px
+        }
+
+        .application-item-wrap.active {
+            background: #edf5fc;
+            border-color: #9fc4e7
+        }
+
+        .application-item {
+            width: 100%;
+            padding: 11px 38px 11px 11px;
+            background: transparent;
+            color: var(--text);
+            text-align: left
+        }
+
+        .application-name {
+            font-weight: 750
+        }
+
+        .application-meta,
+        .meta {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .delete-application {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 25px;
+            height: 25px;
+            padding: 0;
+            border-radius: 50%;
+            background: transparent;
+            color: #7a8794
+        }
+
+        .application-heading {
+            padding: 15px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px
+        }
+
+        .application-heading h2 {
+            margin: 2px 0 0;
+            font-size: 20px
+        }
+
+        .eyebrow {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .06em
+        }
+
+        .upload {
+            padding: 16px;
+            margin-bottom: 18px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            padding: 18px;
+            margin-bottom: 18px;
+            align-items: center
+        }
+
+        .status,
+        .badge {
+            font-weight: 800;
+            border-radius: 999px;
+            white-space: nowrap
+        }
+
+        .status {
+            padding: 7px 10px
+        }
+
+        .badge {
+            font-size: 12px;
+            padding: 4px 8px
+        }
+
+        .resolved,
+        .pass {
+            color: var(--green);
+            background: var(--green-bg)
+        }
+
+        .verify,
+        .review {
+            color: var(--amber);
+            background: var(--amber-bg)
+        }
+
+        .fail {
+            color: var(--red);
+            background: var(--red-bg)
+        }
+
+        .abstain,
+        .na,
+        .optional {
+            color: #536170;
+            background: var(--gray)
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(320px, .9fr) minmax(520px, 1.4fr);
+            gap: 18px
+        }
+
+        .panel {
+            overflow: hidden
+        }
+
+        .panel h2 {
+            font-size: 16px;
+            margin: 0;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .artwork-panel {
+            align-self: start;
+            position: sticky;
+            top: 18px
+        }
+
+        #imageTabs {
+            display: flex;
+            gap: 8px;
+            padding: 10px;
+            overflow-x: auto;
+            background: #f4f6f8;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .image-tab-wrap {
+            position: relative;
+            display: inline-flex;
+            border: 2px solid transparent;
+            border-radius: 7px
+        }
+
+        .image-tab-wrap.active {
+            border-color: var(--blue)
+        }
+
+        .image-tab {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 4px;
+            background: #fff
+        }
+
+        .image-tab img {
+            width: 70px;
+            height: 55px;
+            object-fit: cover;
+            border-radius: 3px
+        }
+
+        .image-tab span {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .remove-image {
+            position: absolute;
+            top: -7px;
+            right: -7px;
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            background: var(--red);
+            color: #fff
+        }
+
+        .imagewrap {
+            padding: 16px;
+            background: #192631;
+            min-height: 520px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden
+        }
+
+        .image-stage {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            line-height: 0
+        }
+
+        .label-image {
+            max-width: 100%;
+            max-height: 640px;
+            width: auto;
+            height: auto;
+            object-fit: contain
+        }
+
+        .annotation-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none
+        }
+
+        .annotation-box {
+            position: absolute;
+            border: 3px solid #2563eb;
+            background: rgba(37, 99, 235, .15);
+            border-radius: 4px
+        }
+
+        .annotation-box.verify {
+            border-color: #d97706;
+            background: rgba(217, 119, 6, .15)
+        }
+
+        .annotation-box.fail {
+            border-color: #dc2626;
+            background: rgba(220, 38, 38, .12)
+        }
+
+        .placeholder {
+            color: #c7d0d9
+        }
+
+        .tools {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .requirement-group h3 {
+            margin: 0;
+            padding: 10px 16px;
+            background: #f7f9fb;
+            border-bottom: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase
+        }
+
+        .field {
+            padding: 15px 16px;
+            border-bottom: 1px solid var(--border);
+            outline: none;
+            cursor: pointer
+        }
+
+        .field:hover,
+        .field:focus-visible {
+            background: #fbfdff
+        }
+
+        .fieldtop {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: start
+        }
+
+        .fieldname {
+            font-weight: 750
+        }
+
+        .value {
+            font-size: 18px;
+            font-weight: 650;
+            margin-top: 5px
+        }
+
+        .field-actions {
+            display: flex;
+            align-items: center;
+            gap: 7px
+        }
+
+        .checks {
+            margin: 9px 0 0;
+            padding-left: 20px;
+            color: var(--muted);
+            font-size: 13px
+        }
+        
+        .info-panel {
+            margin-top: 10px;
+            padding: 11px 13px;
+            border: 1px solid #e4c780;
+            border-left: 4px solid #c5922c;
+            border-radius: 6px;
+            background: #fffaf0;
+            font-size: 13px
+        }
+
+        .candidate-meta {
+            display: block;
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .evidence-link {
+            margin-top: 9px;
+            margin-right: 6px;
+            padding: 5px 8px;
+            font-size: 12px
+        }
+
+        details {
+            margin-top: 18px;
+            padding: 12px 16px
+        }
+
+        summary {
+            cursor: pointer;
+            font-weight: 700
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #111827;
+            color: #e5edf5;
+            padding: 14px;
+            border-radius: 7px;
+            max-height: 390px;
+            overflow: auto;
+            font-size: 12px
+        }
+
+        .empty-review {
+            padding: 28px 16px;
+            color: var(--muted);
+            text-align: center
+        }
+
+        @media(max-width:1000px) {
+            .app-shell {
+                grid-template-columns: 1fr
+            }
+
+            .application-sidebar {
+                position: static
+            }
+        }
+
+        @media(max-width:900px) {
+            .layout {
+                grid-template-columns: 1fr
+            }
+
+            .artwork-panel {
+                position: static
+            }
+
+            .summary {
+                grid-template-columns: 1fr
+            }
+
+            .imagewrap {
+                min-height: 300px
+            }
+        }
+    .details {
+        display: none;
+    }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div>
+            <h1>Alcohol Label Verification</h1>
+            <div class="sub">AI-assisted application review with human verification for uncertainty</div>
+        </div>
+        <div id="time"></div>
+    </header>
+    <div class="app-shell">
+        <aside class="application-sidebar">
+            <div class="sidebar-header">
+                <div>
+                    <h2>Applications</h2>
+                    <div id="applicationCount" class="meta">1 application</div>
+                </div><button id="addApplicationButton" class="secondary">+ Add</button>
+            </div>
+            <div id="applicationList" class="application-list"></div>
+        </aside>
+        <main>
+            <section class="application-heading">
+                <div>
+                    <div class="eyebrow">Label application</div>
+                    <h2 id="applicationTitle">Application 1</h2>
+                </div>
+                <div id="applicationStatus" class="status abstain">NOT ANALYZED</div>
+            </section>
+            <section class="upload"><label class="filebtn secondary">Add label artwork<input id="imageFile" type="file"
+                        accept="image/*" multiple></label><button class="primary" id="apiButton">Analyze
+                    application</button><span id="message" class="meta">Add one or more label artwork images for this
+                    application.</span></section>
+            <section class="summary">
+                <div><strong>Application review</strong>
+                    <div id="summaryText" class="meta">No analysis loaded.</div>
+                </div>
+                <div id="status" class="status abstain">NOT ANALYZED</div>
+            </section>
+            <div class="layout">
+                <section class="panel artwork-panel">
+                    <h2>Label artwork</h2>
+                    <div id="imageTabs"></div>
+                    <div class="imagewrap">
+                        <div class="image-stage"><img id="labelImage" class="label-image" hidden
+                                alt="Uploaded alcohol label">
+                            <div id="annotation-layer" class="annotation-layer" aria-hidden="true"></div>
+                        </div>
+                        <div id="imagePlaceholder" class="placeholder">Add label artwork for this application.</div>
+                    </div>
+                    <div class="tools" id="ocrSummary">Evidence from all artwork images is reconciled into one
+                        application review.</div>
+                </section>
+                <section class="panel">
+                    <h2>Label review</h2>
+                    <div class="requirement-group">
+                        <h3>Identity</h3>
+                        <div id="identityFields"></div>
+                    </div>
+                    <div class="requirement-group">
+                        <h3>Contents</h3>
+                        <div id="contentFields"></div>
+                    </div>
+                    <div class="requirement-group">
+                        <h3>Business information</h3>
+                        <div id="businessFields"></div>
+                    </div>
+                    <div class="requirement-group">
+                        <h3>Compliance</h3>
+                        <div id="complianceFields"></div>
+                    </div>
+                </section>
+            </div>
+            <details class="details">
+                <summary>Evidence and audit details</summary>
+                <p class="meta">Full analysis is retained here for reviewer and audit inspection.</p>
+                <pre id="raw">No analysis loaded.</pre>
+            </details>
+        </main>
+    </div>
+    <script>
+        const API_URL = "/analyze", $ = id => document.getElementById(id);
+        const REQUIREMENTS = [{ key: "brand_name", label: "Brand name", group: "identity", required: true }, { key: "class_type", label: "Class / type", group: "identity", required: true }, { key: "alcohol_content", label: "Alcohol content", group: "contents", required: true }, { key: "proof", label: "Proof", group: "contents", required: false }, { key: "net_contents", label: "Net contents", group: "contents", required: true }, { key: "businesses", label: "Producer / bottler / importer", group: "business", required: false }, { key: "business_address", label: "Business address", group: "business", required: false }, { key: "country_of_origin", label: "Country of origin", group: "business", required: false }, { key: "government_warning", label: "Government Health Warning", group: "compliance", required: true }];
+
+        let applicationSequence = 1, applications = [createApplication(1)], activeApplicationId = 1;
+
+        function createApplication(id) { return { id, name: `Application ${id}`, images: [], imageUrls: [], activeImageIndex: 0, analysis: null, requestTimeMs: null, error: null } }
+        function activeApplication() { return applications.find(a => a.id === activeApplicationId) }
+        function esc(v) { return String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]) }
+        function simpleValue(o) { if (o == null) return null; if (typeof o !== "object") return o; if (o.value == null) return null; if (!o.unit) return o.value; return `${o.value} ${o.unit === "percent_abv" ? "% ABV" : o.unit}` }
+        function methodLabel(obj) {
+            const method =
+                obj?.method || "";
+
+            if (
+                method.includes(
+                    "semantic"
+                )
+            ) {
+                return "AI-assisted detection";
+            }
+
+            if (method === "regex") {
+                return "Detected on label";
+            }
+
+            if (
+                method ===
+                "cross_field_constraint"
+            ) {
+                return "Validated from label values";
+            }
+
+            if (
+                method ===
+                "controlled_vocabulary"
+            ) {
+                return "Matched to a recognized label value";
+            }
+
+            return "Detected on label";
+        }
+
+
+        function statusLabel(s) { return s === "RESOLVED" ? "REVIEW COMPLETE" : s === "VERIFY" ? "HUMAN REVIEW" : s === "FAIL" ? "REQUIREMENT FAILED" : s === "ABSTAIN" ? "NOT PROCESSED" : s === "ERROR" ? "ERROR" : "NOT ANALYZED" }
+        function statusClass(s) { return s === "RESOLVED" ? "resolved" : s === "VERIFY" ? "verify" : s === "FAIL" || s === "ERROR" ? "fail" : "abstain" }
+
+        function clearAnnotations() { $("annotation-layer")?.replaceChildren() }
+        function scaleBox(box, image) {
+            if (!image || !image.naturalWidth || !image.naturalHeight || !Array.isArray(box) || box.length !== 4) return null;
+            const [x1, y1, x2, y2] = box, sx = image.clientWidth / image.naturalWidth, sy = image.clientHeight / image.naturalHeight;
+            return { left: x1 * sx, top: y1 * sy, width: (x2 - x1) * sx, height: (y2 - y1) * sy }
+        }
+        function drawAnnotationBox(box, status) {
+            const scaled = scaleBox(box, $("labelImage")), layer = $("annotation-layer");
+            if (!scaled || !layer) return;
+            const el = document.createElement("div");
+            el.className = `annotation-box${status === "VERIFY" ? " verify" : status === "FAIL" ? " fail" : ""}`;
+            Object.assign(el.style, { left: `${scaled.left}px`, top: `${scaled.top}px`, width: `${scaled.width}px`, height: `${scaled.height}px` });
+            layer.appendChild(el)
+        }
+        function highlightEvidence(evidence, analysis, status) {
+            clearAnnotations();
+            const wanted = new Set(evidence?.line_indexes || []);
+            (analysis?.observations || []).filter(o => wanted.has(o.index) && Array.isArray(o.box) && o.box.length === 4).forEach(o => drawAnnotationBox(o.box, status))
+        }
+        function evidenceItems(evidence) {
+            if (!evidence) return [];
+            const items = [];
+            if (Array.isArray(evidence)) items.push(...evidence);
+            else {
+                items.push(evidence);
+                if (Array.isArray(evidence.evidence)) items.push(...evidence.evidence)
+            } return items.filter(x => x && Array.isArray(x.line_indexes) && x.line_indexes.length)
+        }
+        function evidenceForImage(evidence, imageIndex) { return evidenceItems(evidence).find(x => !Number.isInteger(x.image_index) || x.image_index === imageIndex) || null }
+        function preferredEvidence(evidence, currentImageIndex) {
+            const items = evidenceItems(evidence);
+            return items.find(x => x.image_index === currentImageIndex) || items.find(x => Number.isInteger(x.image_index)) || items[0] || null
+        }
+        function whenImageReady(callback) {
+            const image = $("labelImage");
+            if (image.complete && image.naturalWidth) {
+                requestAnimationFrame(callback);
+                return
+            } image.addEventListener("load", () => requestAnimationFrame(callback), { once: true })
+        }
+        function showRequirementEvidence(requirement) {
+            const app = activeApplication();
+            if (!app?.analysis) return;
+            const evidence = preferredEvidence(requirement.evidence, app.activeImageIndex);
+            if (!evidence) return;
+            const target = Number.isInteger(evidence.image_index) ? evidence.image_index : app.activeImageIndex;
+            if (target < 0 || target >= app.images.length) return;
+            if (target !== app.activeImageIndex) showImage(target);
+            const imageAnalysis = app.analysis?.images?.[target]?.analysis || {};
+            whenImageReady(() => highlightEvidence(evidence, imageAnalysis, requirement.status))
+        }
+        function bindRequirementHighlights(requirements, imageAnalysis, imageIndex) {
+            requirements.forEach(requirement => {
+                const element = document.querySelector(`[data-requirement="${requirement.key}"]`);
+                if (!element) return;
+                const visible = evidenceForImage(requirement.evidence, imageIndex);
+                if (visible) {
+                    const show = () => highlightEvidence(visible, imageAnalysis, requirement.status);
+                    element.addEventListener("mouseenter", show);
+                    element.addEventListener("mouseleave", clearAnnotations);
+                    element.addEventListener("focus", show);
+                    element.addEventListener("blur", clearAnnotations)
+                } element.addEventListener("click", () => showRequirementEvidence(requirement));
+                element.addEventListener("keydown", event => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        showRequirementEvidence(requirement)
+                    }
+                })
+            })
+        }
+        function reasonLabel(reason) {
+            const labels = {
+                brand_name_not_resolved:
+                    "Brand name could not be resolved.",
+
+                brand_name_semantic_unresolved:
+                    "Brand name could not be resolved.",
+
+                class_type_not_resolved:
+                    "Class / type could not be resolved.",
+
+                class_type_semantic_unresolved:
+                    "Class / type could not be resolved.",
+
+                government_warning_not_observed:
+                    "Government Health Warning not detected.",
+
+                government_warning_incomplete:
+                    "Complete Government Health Warning not detected.",
+
+                government_warning_text_mismatch:
+                    "Government Health Warning wording does not match.",
+
+                government_warning_heading_not_uppercase:
+                    "GOVERNMENT WARNING heading must be uppercase.",
+
+                government_warning_heading_not_bold:
+                    "GOVERNMENT WARNING heading must be bold.",
+
+                government_warning_boldness_unresolved:
+                    "Heading boldness could not be verified.",
+
+                no_images_processed:
+                    "No label artwork was processed.",
+
+                no_usable_image_evidence:
+                    "No usable label evidence was detected.",
+            };
+
+
+            return (
+                labels[reason]
+                || "Review this requirement."
+            );
+        }
+
+        function addApplication() {
+            applicationSequence++; const app = createApplication(applicationSequence);
+            applications.push(app);
+            activeApplicationId = app.id;
+            renderApplications();
+            renderActiveApplication()
+        }
+        function selectApplication(id) {
+            activeApplicationId = id;
+            renderApplications();
+            renderActiveApplication()
+        }
+        function deleteApplication(id) {
+            const i = applications.findIndex(a => a.id === id);
+            if (i < 0) return;
+            applications[i].imageUrls.forEach(URL.revokeObjectURL);
+            applications.splice(i, 1);
+            if (!applications.length) {
+                applicationSequence++;
+                applications.push(createApplication(applicationSequence))
+            } activeApplicationId = applications[Math.min(i, applications.length - 1)].id;
+            renderApplications();
+            renderActiveApplication()
+        }
+        function renderApplications() {
+            $("applicationCount").textContent = `${applications.length} application${applications.length === 1 ? "" : "s"}`;
+            $("applicationList").innerHTML = applications.map(app => {
+                const s = app.analysis?.status || (app.error ? "ERROR" : "NOT_ANALYZED");
+                return `<div class="application-item-wrap ${app.id === activeApplicationId ? "active" : ""}"><button class="application-item" onclick="selectApplication(${app.id})"><div class="application-name">${esc(app.name)}</div><div class="application-meta">${app.images.length} artwork image${app.images.length === 1 ? "" : "s"}</div><div class="meta">${statusLabel(s)}</div></button><button class="delete-application" aria-label="Delete ${esc(app.name)}" onclick="event.stopPropagation();
+
+deleteApplication(${app.id})">×</button></div>`
+            }).join("")
+        }
+        function showImage(index) {
+            const app = activeApplication();
+            if (!app || index < 0 || index >= app.images.length) return;
+            clearAnnotations();
+            app.activeImageIndex = index;
+            $("labelImage").src = app.imageUrls[index];
+            $("labelImage").hidden = false;
+            $("imagePlaceholder").hidden = true;
+            renderImageTabs();
+            if (app.analysis) renderAnalysis(app.analysis)
+        }
+        function renderImageTabs() {
+            const app = activeApplication();
+            $("imageTabs").innerHTML = (app?.images || []).map((file, index) => `<div class="image-tab-wrap ${index === app.activeImageIndex ? "active" : ""}"><button class="image-tab" onclick="showImage(${index})" title="${esc(file.name)}"><img src="${app.imageUrls[index]}" alt=""><span>${index + 1}</span></button><button class="remove-image" aria-label="Remove ${esc(file.name)}" onclick="event.stopPropagation();
+
+removeImage(${index})">×</button></div>`).join("")
+        }
+        function removeImage(index) {
+            const app = activeApplication();
+            if (!app || index < 0 || index >= app.images.length) return;
+            URL.revokeObjectURL(app.imageUrls[index]);
+            app.images.splice(index, 1);
+            app.imageUrls.splice(index, 1);
+            app.analysis = null;
+            app.requestTimeMs = null;
+            app.error = null;
+            app.activeImageIndex = Math.min(app.activeImageIndex, Math.max(0, app.images.length - 1));
+            renderApplications();
+            renderActiveApplication()
+        }
+        function warningReasonLabel(
+            warning
+        ) {
+            if (warning.status === "PASS") {
+                return (
+                    "Warning requirements passed."
+                );
+            }
+
+            return reasonLabel(
+                warning.reason
+            );
+        }
+
+        function standardResult(
+            key,
+            label,
+            obj,
+            required = true
+        ) {
+            const value =
+                simpleValue(obj);
+
+            const found =
+                value !== null
+                && value !== "";
+
+            return {
+                key,
+                label,
+
+                status:
+                    found
+                        ? "FOUND"
+                        : required
+                            ? "VERIFY"
+                            : "OPTIONAL",
+
+                value:
+                    found
+                        ? value
+                        : null,
+
+                detail:
+                    found
+                        ? methodLabel(obj)
+                        : "",
+
+                confidence:
+                    obj?.ocr_confidence
+                    ?? obj?.confidence,
+
+                evidence:
+                    obj,
+            };
+        }
+
+        function uniqueCandidates(items) {
+            const seen = new Set;
+            return (items || []).filter(c => {
+                const value = simpleValue(c) ?? c?.observed_text ?? c?.text ?? "", key = `${value}|${c?.image_index ?? ""}|${(c?.line_indexes || []).join(",")}`;
+                if (!value || seen.has(key)) return false;
+                seen.add(key);
+                return true
+            })
+        }
+        function hasImporter(resolved) { return (Array.isArray(resolved.businesses) ? resolved.businesses : []).some(b => (b.roles || []).includes("importer")) }
+        function deriveCountry(resolved, analysis) {
+            if (!hasImporter(resolved)) return { key: "country_of_origin", label: "Country of origin", status: "NA", value: null, candidates: [], detail: "Country of origin is required for imported products." };
+            const obj = resolved.country_of_origin, value = typeof obj === "string" ? obj : (obj?.observed_text || obj?.value || null), candidates = analysis.semantic_country_of_origin_candidates || [];
+            return { key: "country_of_origin", label: "Country of origin", status: value ? "FOUND" : "VERIFY", value: value || null, candidates: value ? [] : candidates, detail: value ? "Country-of-origin statement detected." : candidates.length ? "Possible values were detected. Review the artwork." : "Country of origin was not resolved.", evidence: obj }
+        }
+        function deriveBusinesses(resolved, analysis) {
+            const bs = Array.isArray(resolved.businesses) ? resolved.businesses : [],
+                values = bs.map(b => b.name || b.value || b.observed_text).filter(Boolean),
+                addresses = bs.map(b => b.address).filter(Boolean);
+
+            if (!addresses.length) (analysis.semantic_business_addresses || [])
+                .forEach(a => {
+                    const v = simpleValue(a);
+                    if (v) addresses.push(v)
+                });
+            return {
+                businesses: {
+                    key: "businesses", label: "Producer / bottler / importer", status: values.length ? "FOUND" : "OPTIONAL", value: values.length ? values.join(", ") : null, detail:
+                        values.length
+                            ? "Detected on label"
+                            : "",
+                    evidence: bs[0] || null
+                }, business_address: {
+                    key: "business_address", label: "Business address", status: addresses.length ? "FOUND" : "OPTIONAL", value: addresses.length ? addresses.join(", ") : null, detail:
+                        values.length
+                            ? "Detected on label"
+                            : "",
+                    evidence: bs.find(b => b.address) || analysis.semantic_business_addresses?.[0] || null
+                }
+            }
+        }
+        function deriveWarning(data) {
+            const warnings = (data.images || []).map(i => i.analysis?.government_warning ? { ...i.analysis.government_warning, image_index: i.image_index, filename: i.filename } : null).filter(Boolean), w = warnings.find(x => x.status === "PASS") || warnings.find(x => x.status === "FAIL") || warnings[0];
+
+            if (!w) return { key: "government_warning", label: "Government Health Warning", status: "VERIFY", value: null, detail: "Warning compliance could not be established." };
+
+            return { key: "government_warning", label: "Government Health Warning", status: w.status, value: w.status === "PASS" ? "Compliant" : w.status === "FAIL" ? "Requirement not met" : "Review required", detail: w.reason || "Government Health Warning checks passed.", checks: [["Warning detected", w.observed], ["Complete warning detected", w.complete], ["Required wording exact", w.text_exact], ["Heading uppercase", w.heading_uppercase], ["Heading bold", w.heading_bold]], evidence: { image_index: w.image_index, line_indexes: w.line_indexes || [], filename: w.filename } }
+        }
+        function deriveRequirements(data) {
+            const analysis = data.analysis || {}, resolved = analysis.resolved || {}, business = deriveBusinesses(resolved, analysis), classType = standardResult("class_type", "Class / type", resolved.class_type, true);
+
+            if (!resolved.class_type) classType.candidates = uniqueCandidates([...(analysis.semantic_class_type_candidates || []), ...(data.images || []).flatMap(i => (i.analysis?.semantic_class_type_candidates || []).map(c => ({ ...c, image_index: c.image_index ?? i.image_index, filename: c.filename || i.filename })))]);
+
+            const results = { brand_name: standardResult("brand_name", "Brand name", resolved.brand_name, true), class_type: classType, alcohol_content: standardResult("alcohol_content", "Alcohol content", resolved.alcohol_content, true), proof: standardResult("proof", "Proof", resolved.proof, false), net_contents: standardResult("net_contents", "Net contents", resolved.net_contents, true), businesses: business.businesses, business_address: business.business_address, country_of_origin: deriveCountry(resolved, analysis), government_warning: deriveWarning(data) };
+
+            return REQUIREMENTS.map(r => ({ ...r, ...results[r.key] }))
+        }
+        function badge(status) {
+            const map = { PASS: ["pass", "✓ PASS"], FOUND: ["pass", "✓ FOUND"], VERIFY: ["review", "⚠ REVIEW"], FAIL: ["fail", "✕ FAIL"], NA: ["na", "○ N/A"], OPTIONAL: ["optional", "○ NOT DETECTED"] }, [cls, text] = map[status] || map.VERIFY;
+
+            return `<span class="badge ${cls}">${text}</span>`
+        }
+        function candidatePanel(requirement) {
+            const candidates = uniqueCandidates(requirement.candidates || []);
+
+            if (requirement.status !== "VERIFY" || !candidates.length) return "";
+
+            return `<div class="info-panel"><strong>Possible values detected</strong><ul>${candidates.map(c => {
+                const value = simpleValue(c) ?? c.observed_text ?? c.text ?? "", meta = [Number.isInteger(c.image_index) ? `Image ${c.image_index + 1}` : null, Array.isArray(c.line_indexes) && c.line_indexes.length ? `OCR line${c.line_indexes.length === 1 ? "" : "s"} ${c.line_indexes.map(n => n + 1).join(", ")}` : null, c.filename].filter(Boolean).join(" • ");
+
+                return `<li><strong>${esc(value)}</strong>${meta ? `<span class="candidate-meta">${esc(meta)}</span>` : ""}</li>`
+            }).join("")}</ul></div>`
+        }
+        function evidenceLinks(evidence) {
+            const seen =
+                new Set();
+
+
+            return evidenceItems(evidence)
+                .filter(item =>
+                    Number.isInteger(
+                        item.image_index
+                    )
+                )
+                .filter(item => {
+                    const key =
+                        item.image_index;
+
+
+                    if (seen.has(key)) {
+                        return false;
+
+                    }
+
+                    seen.add(key);
+
+
+                    return true;
+                })
+                .map(item => `
+            <button
+                type="button"
+                class="evidence-link secondary"
+                onclick="
+                    event.stopPropagation();
+                    showImage(
+                        ${item.image_index}
+                    );
+                "
+            >
+                Image ${item.image_index + 1}
+            </button>
+        `)
+                .join("");
+        }
+        function requirementCard(r) {
+            const shown = r.value != null && r.value !== "" ? esc(r.value) : r.status === "NA" ? "Not applicable" : r.status === "OPTIONAL" ? "Not detected" : "Not resolved", checks = (r.checks || []).length ? `<ul class="checks">${r.checks.map(([n, v]) => `<li>${v === true ? "✓" : v === false ? "✕" : "?"} ${esc(n)}</li>`).join("")}</ul>` : "";
+            return `<div class="field" data-requirement="${esc(r.key)}" tabindex="0"><div class="fieldtop"><div><div class="fieldname">
+    ${esc(r.label)}
+</div><div class="value">${shown}</div></div><div class="field-actions">${badge(r.status)}</div></div><div class="meta">${esc(r.detail || "")}</div>${checks}${candidatePanel(r)}${evidenceLinks(r.evidence)}</div>`
+        }
+        function caseState(data, requirements) {
+            if (data.status === "ABSTAIN") return "ABSTAIN";
+            if (requirements.some(r => r.status === "FAIL")) return "FAIL";
+            if (data.status === "VERIFY" || requirements.some(r => r.status === "VERIFY")) return "VERIFY";
+            return data.status === "RESOLVED" ? "RESOLVED" : "NOT_ANALYZED"
+        }
+        function renderAnalysis(data) {
+            $("raw").textContent = JSON.stringify(data, null, 2);
+
+            const requirements = deriveRequirements(data), groups = { identity: [], contents: [], business: [], compliance: [] };
+
+            requirements.forEach(r => groups[r.group]?.push(r));
+
+            $("identityFields").innerHTML = groups.identity.map(requirementCard).join("");
+
+            $("contentFields").innerHTML = groups.contents.map(requirementCard).join("");
+
+            $("businessFields").innerHTML = groups.business.map(requirementCard).join("");
+
+            $("complianceFields").innerHTML = groups.compliance.map(requirementCard).join("");
+
+            const app = activeApplication(), index = app.activeImageIndex, imageAnalysis = data.images?.[index]?.analysis || {};
+
+            bindRequirementHighlights(requirements, imageAnalysis, index);
+
+            const state = caseState(data, requirements);
+
+            for (const id of ["status", "applicationStatus"]) {
+                $(id).textContent = statusLabel(state);
+
+                $(id).className = `status ${statusClass(state)}`
+            } $("summaryText").textContent = state === "RESOLVED" ? "All implemented required fields are resolved." : "Hover a field to highlight evidence in the visible image. Click a field to open its evidence image.";
+
+
+            const imageCount =
+                data.images?.length || 0;
+
+
+
+            $("ocrSummary").textContent =
+                imageCount === 1
+                    ? "Evidence available for this artwork image."
+                    : (
+                        `Evidence available across `
+                        + `${imageCount} artwork images.`
+                    );
+
+
+        }
+        function clearReview() {
+            clearAnnotations();
+
+            $("identityFields").innerHTML = '<div class="empty-review">Analyze this application to review label requirements.</div>';
+
+            $("contentFields").innerHTML = $("businessFields").innerHTML = $("complianceFields").innerHTML = "";
+
+            $("raw").textContent = "No analysis loaded."
+        }
+        function renderActiveApplication() {
+            const app = activeApplication();
+
+            $("applicationTitle").textContent = app.name;
+
+            $("imageFile").value = "";
+
+            if (app.images.length) {
+                $("labelImage").src = app.imageUrls[app.activeImageIndex];
+
+                $("labelImage").hidden = false;
+
+                $("imagePlaceholder").hidden = true;
+
+                renderImageTabs()
+            } else {
+                $("labelImage").hidden = true;
+
+                $("labelImage").removeAttribute("src");
+
+                $("imagePlaceholder").hidden = false;
+
+                $("imageTabs").innerHTML = ""
+            } if (app.analysis) {
+                renderAnalysis(app.analysis);
+
+                $("message").textContent = app.requestTimeMs != null ? `Analysis complete (${app.requestTimeMs.toFixed(0)} ms request time).` : "Analysis complete."
+            } else {
+                clearReview();
+
+                for (const id of ["status", "applicationStatus"]) {
+                    $(id).textContent = "NOT ANALYZED";
+
+                    $(id).className = "status abstain"
+                } $("message").textContent = app.images.length ? `${app.images.length} artwork image${app.images.length === 1 ? "" : "s"} ready.` : "Add one or more label artwork images for this application."
+            }
+        }
+
+        $("addApplicationButton").addEventListener("click", addApplication);
+
+
+        $("imageFile").addEventListener("change", event => {
+            const app = activeApplication();
+
+            app.imageUrls.forEach(URL.revokeObjectURL);
+
+            app.images = Array.from(event.target.files || []);
+
+            app.imageUrls = app.images.map(URL.createObjectURL);
+
+            app.activeImageIndex = 0;
+
+            app.analysis = null;
+
+            app.requestTimeMs = null;
+
+            app.error = null;
+
+            renderApplications();
+
+            renderActiveApplication()
+        });
+
+
+        $("apiButton").addEventListener("click", async () => {
+            const app = activeApplication();
+
+            if (!app.images.length) {
+                $("message").textContent = "Add at least one label artwork image first.";
+
+                return
+            } const button = $("apiButton");
+
+            button.disabled = true;
+
+            $("message").textContent = `Analyzing ${app.images.length} artwork image${app.images.length === 1 ? "" : "s"}...`;
+
+            try {
+                const form = new FormData;
+
+                app.images.forEach(image => form.append("files", image, image.name));
+
+                const start = performance.now(), response = await fetch(API_URL, { method: "POST", body: form }), body = await response.text();
+
+                if (!response.ok) throw new Error(`${response.status}: ${body}`);
+
+                app.analysis = JSON.parse(body);
+
+                app.requestTimeMs = performance.now() - start;
+
+                app.error = null;
+
+                renderApplications();
+
+                renderActiveApplication()
+            } catch (error) {
+                app.analysis = null;
+
+                app.error = error.message;
+
+                $("message").textContent = `Analysis failed: ${error.message}`;
+
+                renderApplications();
+
+                clearReview()
+            } finally { button.disabled = false }
+        });
+
+
+        window.addEventListener("resize", clearAnnotations);
+
+        $("labelImage").addEventListener("load", clearAnnotations);
+
+        $("time").textContent = new Date().toLocaleDateString();
+
+        renderApplications();
+
+        renderActiveApplication();
+
+    </script>
+</body>
+
+</html>

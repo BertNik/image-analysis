@@ -1,0 +1,32 @@
+@'
+.git
+.gitignore
+.venv
+.venv-*
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.coverage
+coverage.xml
+htmlcov
+.mypy_cache
+.ruff_cache
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+
+test
+tests
+*.log
+requirements-current.txt
+
+# Keep secrets and local environment configuration out
+.env
+.env.*
+!.env.example
+
+# Uncomment if models are mounted rather than copied
+# models/
+'@ | Set-Content .dockerignore
